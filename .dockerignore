@@ -1,0 +1,15 @@
+.git
+.github
+.idea
+.serena
+.claude
+dist/
+deploy/
+*.tmp
+cookies.json
+*cookies*.json
+turn-broker.json
+Dockerfile
+.dockerignore
+README*
+CLAUDE.md

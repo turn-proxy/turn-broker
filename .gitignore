@@ -1,0 +1,6 @@
+dist/
+*.tmp
+cookies.json
+*cookies*.json
+.idea
+.serena
