@@ -23,16 +23,27 @@ func CookiesFromJSON(raw []byte) ([]*http.Cookie, error) {
 	}
 	out := make([]*http.Cookie, 0, len(entries))
 	for _, c := range entries {
-		d := strings.TrimPrefix(c.Domain, ".")
-		if d != "" && d != "vk.com" && !strings.HasSuffix(d, ".vk.com") {
+		if !isVKCookieHost(strings.TrimPrefix(c.Domain, ".")) {
 			continue
 		}
 		out = append(out, &http.Cookie{Name: c.Name, Value: c.Value, Domain: c.Domain})
 	}
 	if len(out) == 0 {
-		return nil, fmt.Errorf("no vk.com cookies found in export")
+		return nil, fmt.Errorf("no vk cookies found in export")
 	}
 	return out, nil
+}
+
+func isVKCookieHost(host string) bool {
+	if host == "" {
+		return true
+	}
+	for _, base := range []string{"vk.ru", "vk.com"} {
+		if host == base || strings.HasSuffix(host, "."+base) {
+			return true
+		}
+	}
+	return false
 }
 
 func WriteCookiesFile(path string, cookies []*http.Cookie) error {
@@ -40,7 +51,7 @@ func WriteCookiesFile(path string, cookies []*http.Cookie) error {
 	for _, c := range cookies {
 		domain := c.Domain
 		if domain == "" {
-			domain = ".vk.com"
+			domain = "." + vkDomain
 		}
 		entries = append(entries, cookieEntry{Name: c.Name, Value: c.Value, Domain: domain})
 	}

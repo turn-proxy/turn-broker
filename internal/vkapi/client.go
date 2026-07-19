@@ -20,8 +20,10 @@ const (
 	DefaultAppID      = "6287487"
 	DefaultAPIVersion = "5.275"
 
-	vkAPIBase   = "https://api.vk.com"
-	vkLoginBase = "https://login.vk.com"
+	vkDomain    = "vk.ru"
+	vkAPIBase   = "https://api." + vkDomain
+	vkLoginBase = "https://login." + vkDomain
+	vkOrigin    = "https://" + vkDomain
 
 	webTokenRefreshBufferSecs = 300
 )
@@ -97,7 +99,7 @@ func seedJar(jar tlsclient.CookieJar, cookies []*http.Cookie) {
 	for _, c := range cookies {
 		host := strings.TrimPrefix(c.Domain, ".")
 		if host == "" {
-			host = "vk.com"
+			host = vkDomain
 		}
 		jar.SetCookies(&url.URL{Scheme: "https", Host: host}, []*http.Cookie{c})
 	}
@@ -112,7 +114,7 @@ func (v *Client) SnapshotCookies() []*http.Cookie {
 	}
 	var out []*http.Cookie
 	for host, bucket := range v.jar.GetAllCookies() {
-		if host != "vk.com" {
+		if !isVKCookieHost(host) {
 			continue
 		}
 		out = append(out, bucket...)
@@ -130,8 +132,8 @@ func (v *Client) send(ctx context.Context, endpoint string, query, form url.Valu
 		return nil, err
 	}
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	req.Header.Set("Origin", "https://vk.com")
-	req.Header.Set("Referer", "https://vk.com/")
+	req.Header.Set("Origin", vkOrigin)
+	req.Header.Set("Referer", vkOrigin+"/")
 
 	resp, err := v.http.Do(req)
 	if err != nil {
@@ -176,7 +178,11 @@ func (v *Client) fetchWebToken(ctx context.Context) (*webTokenData, error) {
 		return nil, fmt.Errorf("web_token parse: %w", err)
 	}
 	if r.Data == nil || r.Data.AccessToken == "" {
-		return nil, fmt.Errorf("web_token error: type=%s info=%v", r.Type, r.ErrorInfo)
+		info := r.Type
+		if r.ErrorInfo != nil && *r.ErrorInfo != "" {
+			info = *r.ErrorInfo
+		}
+		return nil, fmt.Errorf("web_token: %s", info)
 	}
 	return r.Data, nil
 }

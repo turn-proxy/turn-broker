@@ -51,7 +51,8 @@ func TestCookiesFromJSONFiltersDomains(t *testing.T) {
 		{"name":"b","value":"2","domain":".login.vk.com"},
 		{"name":"c","value":"3","domain":".google.com"},
 		{"name":"d","value":"4","domain":"vk.com"},
-		{"name":"e","value":"5","domain":"vk.ru"}
+		{"name":"e","value":"5","domain":"vk.ru"},
+		{"name":"f","value":"6","domain":".login.vk.ru"}
 	]`
 	cookies, err := CookiesFromJSON([]byte(raw))
 	if err != nil {
@@ -61,12 +62,12 @@ func TestCookiesFromJSONFiltersDomains(t *testing.T) {
 	for _, c := range cookies {
 		got[c.Name] = c.Value
 	}
-	for name, want := range map[string]string{"a": "1", "b": "2", "d": "4"} {
+	for name, want := range map[string]string{"a": "1", "b": "2", "d": "4", "e": "5", "f": "6"} {
 		if got[name] != want {
 			t.Errorf("cookie %q = %q, want %q", name, got[name], want)
 		}
 	}
-	for _, bad := range []string{"c", "e"} {
+	for _, bad := range []string{"c"} {
 		if _, ok := got[bad]; ok {
 			t.Errorf("cookie %q should have been filtered out", bad)
 		}

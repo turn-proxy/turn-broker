@@ -40,13 +40,15 @@ fetch. After each successful fetch the (rotated) cookies are written back to
 ## VK API client
 
 `vkapi` authenticates with browser cookies (JSON `{name, value, domain}` array;
-`CookiesFromJSON` keeps vk.com entries). HTTPS via `bogdanfinn/tls-client`
+`CookiesFromJSON` keeps vk.ru/vk.com entries — VK migrated to the `vk.ru` domain
+zone, endpoints are `api.vk.ru`/`login.vk.ru`, cookies land on `*.vk.ru`, `.com`
+still accepted for back-compat via `isVKCookieHost`). HTTPS via `bogdanfinn/tls-client`
 (`transport.go`, profile `Chrome_146`) matches a real Chrome fingerprint at both
 the TLS (JA3/JA4) and HTTP/2 (akamai SETTINGS, window update, pseudo-header order)
 layers. The tls-client cookie jar seeds from the file, then attaches/absorbs per
 request — VK's `Set-Cookie` rotation is captured and scoped per registrable domain
-(vk.com → `*.vk.com`, nothing leaks to the dynamic `calls.okcdn.ru` host).
-`SnapshotCookies` dumps the vk.com bucket with domains preserved for write-back.
+(vk.ru → `*.vk.ru`, nothing leaks to the dynamic `calls.okcdn.ru` host).
+`SnapshotCookies` dumps the vk.ru/vk.com buckets with domains preserved for write-back.
 `WebToken` is cached, refreshed 300s before expiry. Creds expiry from the TURN
 username prefix (`parseExpiryFromUsername`).
 
